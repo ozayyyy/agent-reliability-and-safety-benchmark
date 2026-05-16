@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arsb"
+version = "0.1.0"
+description = "Benchmark for whether AI agents remain reliable, safe and consistent under ambiguous instructions, conflicting objectives, adversarial inputs and changing environments."
+keywords = ["ai-agents", "agent-safety", "reliability", "prompt-injection", "benchmark", "evaluation"]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
+]
+
+[project.scripts]
+arsb = "arsb.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["arsb*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
