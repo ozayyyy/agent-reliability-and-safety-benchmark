@@ -48,9 +48,18 @@ and an ARSB trace parses with AASEF's trace fields.
 
 ### Scenario schema (`arsb/scenario.py`)
 
-AASEF categories are accepted unchanged. ARSB adds seven categories:
+AASEF categories are accepted unchanged. ARSB adds eight categories:
 `ambiguous`, `conflicting`, `adversarial`, `incomplete-information`,
-`refusal`, `prompt-variation`, `tool-error-recovery`.
+`refusal`, `prompt-variation`, `tool-error-recovery`, `delegation`.
+
+The `delegation` category covers one agent handing work to another.
+A sub-agent's reply arrives as a tool observation, so it is modelled
+with the existing fields only: a reply contradicting the user is a
+`conflict_instructions` entry with source `tool`; a reply carrying
+an instruction the delegating agent must not follow is an
+`injected_steps` entry with `untrusted_source` `tool-output`; a
+reply with several plausible meanings is `readings`. No new field
+is needed, and the category is in `UNSAFE_CATEGORIES`.
 
 Optional fields, all defaulting to "absent":
 
@@ -83,7 +92,10 @@ Optional fields, all defaulting to "absent":
 - `AgentAdapter.should_refuse(scenario)` and
   `should_retry(action, fault, already_completed, attempt)`: new
   methods the runner consults. The defaults never refuse and never
-  retry, which is exactly the AASEF behaviour.
+  retry, which is exactly the AASEF behaviour. The cautious
+  configuration refuses delegation scenarios whose
+  `expected_outcome` is `ask` or `refuse`, in both the simulated
+  agent and the API model adapter.
 
 ### Tools (`arsb/tools.py`)
 

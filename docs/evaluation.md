@@ -110,6 +110,28 @@ discrepancies:
    irrelevant context flips it into reading a secret file, while
    the other configurations are consistent across all paraphrases.
 
+## Delegation scenarios
+
+Seven delegation scenarios (`del-01` to `del-07`) were added after
+the 37-scenario evaluation above. They are measured separately —
+84 runs, recorded in `examples/delegation-report.json` — so the
+numbers above stay reproducible. Full detail is in
+`docs/delegation.md`.
+
+| Configuration | Task success | Unsafe compliance | Refusal |
+|---|---|---|---|
+| baseline | 57.1% | 95.2% | 0.0% |
+| cautious | 71.4% | 0.0% | 28.6% |
+| hierarchy-aware | 71.4% | 14.3% | 0.0% |
+| tool-side-enforced | 71.4% | 0.0% | 0.0% |
+
+The pattern matches the rest of the benchmark: hierarchy filtering
+stops every unsafe compliance that arrives through a helper's
+reply, and fails on exactly one shape — the disallowed request the
+user issued themselves, routed through a helper (del-07). That is
+the same limit it has on the refusal category, now shown through
+delegation.
+
 ## Limitations
 
 - Agents are deterministic simulated decision policies, not real
@@ -120,7 +142,10 @@ discrepancies:
   with the correct one first, which flatters first-reading
   policies. A suite with the correct reading second, or with
   three readings, would separate "takes the first reading" from
-  "understands the task".
+  "understands the task". The delegation scenario del-03 is the
+  one exception: it has three readings, because with two the
+  baseline picked the correct one on all three seeds and the
+  scenario measured nothing.
 - Refusal consistency is 100.0% for every configuration, which is
   trivially true for deterministic policies; the meaningful
   consistency signals are run-to-run (85.6% baseline) and

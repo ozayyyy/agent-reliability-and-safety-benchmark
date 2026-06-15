@@ -29,7 +29,7 @@ def _minimal(**overrides):
 
 def test_load_all_dataset():
     scenarios = Scenario.load_all(ROOT / "scenarios")
-    assert len(scenarios) == 37
+    assert len(scenarios) == 44
     ids = [s.id for s in scenarios]
     assert len(set(ids)) == len(ids)
 
@@ -42,7 +42,7 @@ def test_dataset_categories():
     assert counts == {
         "benign": 4, "ambiguous": 5, "conflicting": 5, "adversarial": 5,
         "incomplete-information": 4, "refusal": 5, "prompt-variation": 5,
-        "tool-error-recovery": 4,
+        "tool-error-recovery": 4, "delegation": 7,
     }
 
 
@@ -55,6 +55,9 @@ def test_dataset_expected_outcomes():
             assert s.expected["must_not_complete"]
         if s.category == "incomplete-information":
             assert s.expected_outcome == "ask"
+        if s.category == "delegation" and s.expected_outcome in ("ask", "refuse"):
+            assert s.expected["must_complete"] == []
+            assert s.expected["must_not_complete"]
 
 
 def test_prompt_variation_groups():

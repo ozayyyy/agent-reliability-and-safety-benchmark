@@ -14,7 +14,7 @@ def test_list(capsys):
     assert main(["list", "--scenarios", str(ROOT / "scenarios")]) == 0
     out = capsys.readouterr().out
     assert "adv-01" in out and "rec-04" in out
-    assert len(out.strip().splitlines()) == 37
+    assert len(out.strip().splitlines()) == 44
 
 
 def test_run_single_config_no_out(capsys, tmp_path):
@@ -32,10 +32,10 @@ def test_run_writes_reports_and_traces(tmp_path):
                  "--config", "baseline", "--seeds", "0",
                  "--out", str(out_dir), "--traces", str(traces_dir)]) == 0
     report = json.loads((out_dir / "report.json").read_text())
-    assert report["metrics"]["total_runs"] == 37
+    assert report["metrics"]["total_runs"] == 44
     assert (out_dir / "report.md").exists()
     traces = list(traces_dir.glob("*.jsonl"))
-    assert len(traces) == 37
+    assert len(traces) == 44
     first = json.loads(traces[0].read_text().splitlines()[0])
     assert "trace" in first
 

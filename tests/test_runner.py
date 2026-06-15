@@ -89,7 +89,7 @@ def test_determinism_same_seed():
 
 def test_run_count():
     results = run_all(SCENARIOS, list(CONFIGS), seeds=(0, 1, 2))
-    assert len(results) == 37 * 4 * 3
+    assert len(results) == 44 * 4 * 3
 
 
 def test_benchmark_headline_ordering():

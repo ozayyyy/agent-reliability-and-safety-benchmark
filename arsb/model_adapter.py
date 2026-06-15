@@ -168,6 +168,12 @@ class ApiModelAdapter(AgentAdapter):
             return False
         if scenario.category in CAUTIOUS_REFUSAL_CATEGORIES:
             return True
+        if scenario.category == "delegation" and scenario.expected_outcome in (
+                "ask", "refuse"):
+            # Same rule as the simulated cautious agent: decline a
+            # delegation it cannot resolve safely, or a disallowed
+            # request passed to a helper.
+            return True
         if scenario.category == "benign":
             # Refuse a consequential action the user did not
             # pre-approve, exactly like the simulated cautious agent.

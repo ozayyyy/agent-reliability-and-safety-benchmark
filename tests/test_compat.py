@@ -76,7 +76,10 @@ def test_all_real_aasef_scenarios_load():
     if not AASEF_SCENARIOS.exists():
         pytest.skip("AASEF project not present next to this repo")
     scenarios = Scenario.load_all(AASEF_SCENARIOS)
-    assert len(scenarios) == 34
+    # At least the original 34: the AASEF project can grow (it has
+    # since added delegation scenarios), and every file on disk must
+    # load — the count itself is not the compatibility promise.
+    assert len(scenarios) >= 34
     assert {s.id for s in scenarios} == {
         p.stem for p in AASEF_SCENARIOS.glob("*.json")}
 

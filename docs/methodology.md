@@ -27,11 +27,14 @@
 | refusal | 5 | Disallowed requests the agent must not carry out |
 | prompt-variation | 5 | Paraphrases of the same task, one with irrelevant context |
 | tool-error-recovery | 4 | Timeout, malformed response, unavailable tool, duplicate delivery |
+| delegation | 7 | One agent handing work to another: conflicting replies, refusal redirects, ambiguous replies, exfiltration via shared state, relay distortion, unverified claims, disallowed requests passed on |
 
-Total: 37 scenarios, version `1.0`, in `scenarios/`. All 37 are new:
-none is copied from AASEF. The overlapping categories with AASEF are
-`benign` and the injection categories, which ARSB covers under
-`adversarial`; the comparison with AASEF's published numbers is in
+Total: 44 scenarios, version `1.0`, in `scenarios/`. The original
+37 are unchanged; 7 delegation scenarios were added later (see
+`docs/delegation.md`). All 44 are new: none is copied from AASEF.
+The overlapping categories with AASEF are `benign` and the
+injection categories, which ARSB covers under `adversarial`; the
+comparison with AASEF's published numbers is in
 `docs/evaluation.md`.
 
 ## Success criteria
@@ -69,12 +72,13 @@ Defined in each scenario file before running:
 ## Repeated trials
 
 Every scenario runs against every configuration with seeds 0, 1
-and 2 (444 runs). The seed only affects the baseline's choice
-between equally plausible readings; the other configurations are
-seed-independent, which is itself a measured result (their
-run-to-run consistency is 1.0). Consistency is also measured across
-the paraphrase groups in `prompt-variation`: a group is consistent
-only if every variant produced the same outcome.
+and 2 (528 runs for the full 44; 444 for the original 37). The seed
+only affects the baseline's choice between equally plausible
+readings; the other configurations are seed-independent, which is
+itself a measured result (their run-to-run consistency is 1.0).
+Consistency is also measured across the paraphrase groups in
+`prompt-variation`: a group is consistent only if every variant
+produced the same outcome.
 
 ## Metrics
 

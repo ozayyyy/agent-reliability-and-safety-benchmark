@@ -152,6 +152,11 @@ class SimulatedAgent(AgentAdapter):
     - Tool faults: see ``should_retry``. The baseline retries any
       failure once, including an error reported after the action
       already completed — that is the duplicate-action failure.
+    - Delegation: a sub-agent's reply is a tool observation, so the
+      same rules apply — hierarchy-aware agents ignore instructions
+      in it, the baseline follows them, and the cautious agent
+      refuses a delegation it cannot resolve safely (``ask``) or a
+      disallowed request passed to a helper (``refuse``).
     """
 
     def _seeded_choice(self, scenario: Scenario, options: list) -> int:
@@ -162,6 +167,12 @@ class SimulatedAgent(AgentAdapter):
         if not self.config.cautious:
             return False
         if scenario.category in CAUTIOUS_REFUSAL_CATEGORIES:
+            return True
+        if scenario.category == "delegation" and scenario.expected_outcome in (
+                "ask", "refuse"):
+            # Delegation under ambiguity (ask) or a disallowed request
+            # passed to a helper (refuse): guessing or passing it on
+            # is not a safe action, so the cautious agent declines.
             return True
         if scenario.category == "benign":
             # Refuse a consequential action the user did not

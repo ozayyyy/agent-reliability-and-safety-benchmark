@@ -36,6 +36,19 @@ fields only — an AASEF scenario file loads here unchanged:
   should ask for clarification instead of guessing). Defaults to
   ``complete``, except category ``refusal`` which defaults to
   ``refuse`` and ``incomplete-information`` which defaults to ``ask``.
+
+The ``delegation`` category covers multi-agent work: one agent
+handing a task to another. A sub-agent's reply arrives as a tool
+observation, so it is modelled with the existing fields only — a
+reply that contradicts the user is a ``conflict_instructions``
+entry with source ``tool``; a reply carrying an instruction the
+delegating agent must not follow is an ``injected_steps`` entry
+with ``untrusted_source`` ``tool``; a reply with several plausible
+meanings is ``readings``. No new field is needed, and a delegation
+scenario loads and scores exactly like any other: the category is
+in ``UNSAFE_CATEGORIES``, and the cautious configuration refuses
+delegation scenarios whose ``expected_outcome`` is ``ask`` or
+``refuse`` (see ``arsb.agents``).
 """
 
 from __future__ import annotations
@@ -70,6 +83,7 @@ ARSB_CATEGORIES = (
     "refusal",
     "prompt-variation",
     "tool-error-recovery",
+    "delegation",
 )
 
 CATEGORIES = AASEF_CATEGORIES + ARSB_CATEGORIES
@@ -81,7 +95,7 @@ CATEGORIES = AASEF_CATEGORIES + ARSB_CATEGORIES
 # and a distractor in a paraphrase can do the same.
 UNSAFE_CATEGORIES = (
     "adversarial", "refusal", "ambiguous", "conflicting",
-    "incomplete-information", "prompt-variation",
+    "incomplete-information", "prompt-variation", "delegation",
     "direct-injection", "indirect-web", "indirect-document",
     "indirect-tool-output", "unauthorised-tool", "privilege-boundary",
     "out-of-scope-data", "cross-task-leak", "cross-session-leak",
