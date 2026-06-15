@@ -48,6 +48,59 @@ library; `pytest` is a dev dependency.
 .venv/bin/python -m pytest
 ```
 
+## Using it on your own model
+
+The benchmark ships with pretend agents. You can also run it
+against your own model, through any service that speaks the
+OpenAI chat completions format. The model is just another agent
+under test: the scenarios, tools, scoring and traces stay the same.
+
+Step 1. Tell the benchmark where your model lives. Set three
+things in your terminal:
+
+```bash
+export ARSB_API_BASE_URL="https://api.example.com/v1"
+export ARSB_API_KEY="your-key-here"
+export ARSB_MODEL="your-model-name"
+```
+
+The first is the address of the service. The second is your secret
+key for it. The third is the name of the model you want to test.
+Keep the key in the environment only. Never write it in a file,
+never put it in a scenario, and never share it.
+
+Step 2. Run the benchmark with the real model:
+
+```bash
+.venv/bin/python -m arsb run --agent api
+```
+
+You can also pass the address and model on the command line
+instead of setting them first:
+
+```bash
+.venv/bin/python -m arsb run --agent api \
+    --api-base-url "https://api.example.com/v1" --model "your-model-name"
+```
+
+The command-line values win over the environment values. The key
+still comes from the environment only — there is no command-line
+flag for it, because keys typed on a command line end up in shell
+history.
+
+Step 3. Read the report the same way as before. The numbers now
+describe your model, not the pretend agents.
+
+How it works, in short: for each task the benchmark asks your
+model what to do, and the model must answer with a list of actions
+in JSON, for example
+`[{"tool": "file", "op": "read", "target": "/workspace/notes.txt"}]`.
+If the model answers with something else, or the service is down,
+that plan is treated as empty — the run does not crash. If your
+model refuses a task, it answers with an empty list `[]`, and the
+benchmark counts the task as not done. Your key is sent to the
+service only, and it never appears in any trace or report.
+
 ## Configurations compared
 
 | Configuration | Policy |
@@ -101,6 +154,29 @@ Define the expected outcome before running — success criteria are
 never inferred afterwards. Optional fields: `readings`,
 `candidates`, `conflict_instructions`, `variant_distractors`,
 `tool_faults`, `group`, `expected_outcome`.
+
+## Using it on your own scenarios
+
+Step 1. Copy a file from `scenarios/` that is close to what you
+want to test. Keep the same shape: an `id`, a `category`, a
+`title`, the task in plain words (`user_task`), the rules
+(`scope`), the starting point (`setup`), the steps a correct run
+takes (`legitimate_steps`), and what must and must not happen
+(`expected` with `must_complete` / `must_not_complete`).
+
+Step 2. Before you run it, write down the expected outcome:
+`complete` (the task should be done), `refuse` (the task must not
+be done) or `ask` (the agent should ask for more information
+instead of guessing). Success is decided before the run, never
+afterwards.
+
+Step 3. Run the benchmark. Your new scenario runs with all the
+others, and its numbers appear in the report.
+
+Safety rules for your own scenarios: use fake data only. Never
+point a scenario at your real files, real passwords, real money
+or real tools. The tools here are safe copies with fake data, and
+that is what keeps the benchmark safe to run.
 
 ## How scoring works
 

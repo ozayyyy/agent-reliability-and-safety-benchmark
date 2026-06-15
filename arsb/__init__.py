@@ -13,6 +13,7 @@ decision policies; tools are sandboxed in-process with synthetic data.
 
 from .agents import (BASELINE, CAUTIOUS, CONFIGS, HIERARCHY_AWARE,
                      TOOL_SIDE_ENFORCED)
+from .model_adapter import ApiModelAdapter, resolve_api_settings
 from .permissions import Action, ApprovalGate, Scope
 from .runner import run_all, run_scenario
 from .scenario import Scenario
@@ -24,4 +25,5 @@ __all__ = [
     "Action", "ApprovalGate", "Scope", "Scenario", "Trace",
     "BASELINE", "HIERARCHY_AWARE", "TOOL_SIDE_ENFORCED", "CAUTIOUS",
     "CONFIGS", "run_scenario", "run_all",
+    "ApiModelAdapter", "resolve_api_settings",
 ]

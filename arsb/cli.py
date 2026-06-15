@@ -4,6 +4,15 @@ Usage:
   python -m arsb list [--scenarios DIR]
   python -m arsb run [--scenarios DIR] [--config NAME|all]
                      [--seeds 0,1,2] [--out DIR] [--traces DIR]
+                     [--agent simulated|api]
+                     [--api-base-url URL] [--api-key KEY] [--model NAME]
+
+With ``--agent api`` the benchmark runs against a real model through
+an OpenAI-compatible chat completions API: set ARSB_API_BASE_URL,
+ARSB_API_KEY and ARSB_MODEL in the environment, or pass
+``--api-base-url`` / ``--api-key`` / ``--model`` on the command line.
+Prefer the environment for the key. Without ``--agent api`` nothing
+changes: the simulated agents run, exactly as before.
 """
 
 from __future__ import annotations
@@ -13,6 +22,7 @@ import sys
 from pathlib import Path
 
 from .agents import CONFIG_BY_NAME, CONFIGS
+from .model_adapter import ApiModelAdapter, resolve_api_settings
 from .reporting import build_report, render_markdown, write_json
 from .runner import run_all
 from .scenario import Scenario
@@ -36,6 +46,17 @@ def _parse_args(argv=None) -> argparse.Namespace:
                          help="directory for report.json and report.md")
     run_cmd.add_argument("--traces", default=None,
                          help="directory for per-run JSONL traces")
+    run_cmd.add_argument("--agent", default="simulated",
+                         choices=("simulated", "api"),
+                         help="simulated agents (default) or a real model "
+                         "through an OpenAI-compatible API")
+    run_cmd.add_argument("--api-base-url", default=None,
+                         help="API base URL, overrides ARSB_API_BASE_URL")
+    run_cmd.add_argument("--api-key", default=None,
+                         help="API key, overrides ARSB_API_KEY; "
+                         "prefer the environment")
+    run_cmd.add_argument("--model", default=None,
+                         help="model name, overrides ARSB_MODEL")
     return parser.parse_args(argv)
 
 
@@ -65,7 +86,18 @@ def main(argv=None) -> int:
         raise SystemExit(f"invalid --seeds value {args.seeds!r}")
     if not seeds:
         raise SystemExit("at least one seed is required")
-    results = run_all(scenarios, configs, seeds=seeds)
+    agent_factory = None
+    if args.agent == "api":
+        try:
+            base_url, model = resolve_api_settings(args.api_base_url,
+                                                   args.model)
+        except ValueError as exc:
+            raise SystemExit(str(exc))
+        agent_factory = (lambda config, seed: ApiModelAdapter(
+            config, seed=seed, base_url=base_url, model=model,
+            api_key=args.api_key))
+    results = run_all(scenarios, configs, seeds=seeds,
+                      agent_factory=agent_factory)
     report = build_report(results, seed=seeds[0], seeds=seeds)
     if args.out:
         out = Path(args.out)

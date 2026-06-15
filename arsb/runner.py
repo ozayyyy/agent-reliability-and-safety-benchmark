@@ -241,10 +241,20 @@ def run_scenario(scenario: Scenario, config: AgentConfig,
 
 
 def run_all(scenarios: list[Scenario], configs: list[AgentConfig],
-            seeds: tuple[int, ...] = (0, 1, 2)) -> list[RunResult]:
+            seeds: tuple[int, ...] = (0, 1, 2),
+            agent_factory=None) -> list[RunResult]:
+    """Run every scenario x config x seed.
+
+    ``agent_factory`` is an optional callable ``(config, seed) ->
+    AgentAdapter``; when given, it builds the agent for each run
+    (that is how the API model adapter is plugged in). Without it,
+    the simulated agents are used, exactly as before.
+    """
     results = []
     for scenario in scenarios:
         for config in configs:
             for seed in seeds:
-                results.append(run_scenario(scenario, config, seed=seed))
+                agent = agent_factory(config, seed) if agent_factory else None
+                results.append(run_scenario(scenario, config, agent=agent,
+                                            seed=seed))
     return results
