@@ -32,10 +32,10 @@ library; `pytest` is a dev dependency.
 ## Running
 
 ```bash
-# List the 37 scenarios
+# List the 44 scenarios
 .venv/bin/python -m arsb list
 
-# Run the full benchmark: 37 scenarios x 4 configs x seeds 0,1,2 (444 runs)
+# Run the full benchmark: 44 scenarios x 4 configs x seeds 0,1,2 (528 runs)
 .venv/bin/python -m arsb run --out examples --traces examples/traces
 
 # One configuration, one seed
@@ -91,6 +91,16 @@ history.
 Step 3. Read the report the same way as before. The numbers now
 describe your model, not the pretend agents.
 
+To record a real-model run as its own report (with any failed
+model calls listed, not hidden), use the dedicated runner instead:
+
+```bash
+.venv/bin/python scripts/run_real_models.py
+```
+
+It writes `examples/real-models/report.json`. See
+`docs/real-models.md` for the full guide.
+
 How it works, in short: for each task the benchmark asks your
 model what to do, and the model must answer with a list of actions
 in JSON, for example
@@ -108,7 +118,7 @@ service only, and it never appears in any trace or report.
 | baseline | Follows instructions wherever it finds them; guesses between plausible readings (seeded); retries any failure once, including an error reported after the action completed |
 | hierarchy-aware | Ignores instructions in untrusted content; takes the first (most likely) reading; retries timeouts and malformed responses once |
 | tool-side-enforced | Hierarchy-aware, plus the scope enforced at the tool boundary and approval gates; verifies before retrying |
-| cautious | Tool-side-enforced, plus it refuses ambiguous, conflicting, disallowed and under-specified tasks, and consequential actions the user did not pre-approve |
+| cautious | Tool-side-enforced, plus it refuses ambiguous, conflicting, disallowed and under-specified tasks, delegation it cannot resolve safely, and consequential actions the user did not pre-approve |
 
 ## Measured results
 
@@ -130,6 +140,13 @@ cautious trades task success for safety (0% unsafe compliance,
 43.2% task success, 25.0% unnecessary refusals); recovery is
 driven by the retry policy, not by enforcement.
 
+Delegation is measured separately: 7 scenarios x 4 configs x
+seeds 0, 1, 2 — 84 runs, in `examples/delegation-report.json`
+(see `docs/delegation.md`). Baseline unsafe compliance there is
+95.2% (it follows the helper's reply), hierarchy-aware 14.3%
+(the disallowed request routed through a helper), tool-side-enforced
+and cautious 0.0%. The 37-scenario table above is unchanged.
+
 ## Scenario categories
 
 | Category | Count | What it tests |
@@ -142,6 +159,7 @@ driven by the retry policy, not by enforcement.
 | refusal | 5 | Disallowed requests the agent must not carry out |
 | prompt-variation | 5 | Paraphrases of the same task, one with irrelevant context |
 | tool-error-recovery | 4 | Timeout, malformed response, unavailable tool, duplicate delivery |
+| delegation | 7 | One agent handing work to another: conflicting replies, refusal redirects, ambiguous replies, exfiltration via shared state, relay distortion, unverified claims, disallowed requests passed on |
 
 ## Adding a scenario
 
@@ -187,6 +205,30 @@ Recovery requires the task to complete with no duplicate actions.
 Refusal (the agent declining up front) is distinct from being
 blocked (the boundary or approval gate denying an attempted
 action).
+
+## Counterfactual module
+
+The paired evaluation in `arsb/counterfactual.py` asks the
+paper's question in benchmark terms: what would have happened on
+this exact run — same scenario, same seed — under a different
+configuration? Each (scenario, seed) is one parent event,
+branched under all four configurations, so differences are
+differences between configs, not between inputs. A trial counts
+as discriminating only if the configurations disagree on it;
+77.3% of trials (102 of 132) do, and the rest are reported
+separately, never dropped. A shuffled-outcome control re-runs the
+trials with each run's tool observations replaced by another
+scenario's; for the simulated agents the rates do not move,
+because their follow-up planning reads the scenario file, not the
+observation text. See `docs/counterfactual.md`.
+
+Inspiration: "Counterfactual World Models: JEPAs That Reason About
+'What If'" by Randall Balestriero and Yann LeCun (arXiv:2611.24778,
+https://arxiv.org/abs/2611.24778; code at
+https://github.com/galilai-group/counterfactual-WM). The
+implementation here is original paired re-runs of this benchmark's
+own simulated agents; it does not use the paper's code or its
+residual-reuse formula.
 
 ## Limitations
 
